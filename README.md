@@ -1,7 +1,7 @@
 # DevOps Project Report: Automated CI/CD Pipeline for a 2-Tier Flask Application on AWS
 
-**Author:** Prashant Gohel
-**Date:** August 23, 2025
+**Author:** Vijay D
+**Date:** Oct 17, 2025
 
 ---
 
@@ -247,7 +247,7 @@ pipeline {
         stage('Clone Code') {
             steps {
                 // Replace with your GitHub repository URL
-                git branch: 'main', url: '[https://github.com/your-username/your-repo.git](https://github.com/your-username/your-repo.git)'
+                git branch: 'main', url: 'https://github.com/vijayaws202/DevOps-Project-Two-Tier-Flask-App-main-dev.git'
             }
         }
         stage('Build Docker Image') {
