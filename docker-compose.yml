@@ -3,13 +3,17 @@ version: "3.8"
 services:
   mysql:
     container_name: mysql
-    image: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: "root"
-      MYSQL_DATABASE: "devops"
-    ports:
-      - "3306:3306"
+    image: mysql:8.0.40
 
+    # Use the .env instead of hardcoding secrets
+    env_file:
+      - .env
+
+    # Internal only access   
+    expose:
+      - "3306"
+
+    # Docker volume added
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -18,13 +22,18 @@ services:
 
     restart: always
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot","-proot"]
+      # Use environment variable instead of password
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot","-p$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 60s
 
-
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
   flask-app:
     container_name: two-tier-app
     build:
@@ -33,14 +42,20 @@ services:
     ports:
       - "5000:5000"
 
-    environment:
-      - MYSQL_HOST=mysql
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=root
-      - MYSQL_DB=devops
+    env_file:
+      - .env
 
     networks:
       - two-tier-nt
+
+    # Run as non-root user
+    user: "1000:1000"  
+    # Read only file system
+    read_only: true 
+    # optional volume for logs 
+    volume:
+      - ./logs:/app/logs
+       
 
     depends_on:
       mysql:
@@ -53,8 +68,16 @@ services:
       retries: 5
       start_period: 60s
 
+    deploy:
+      resources:
+        limits: 
+          cpus: "0.5"  
+          memory: 512M
+
 volumes:
   mysql_data:
 
 networks:
   two-tier-nt:
+    driver: bridge
+    

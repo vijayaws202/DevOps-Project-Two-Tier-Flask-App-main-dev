@@ -1,17 +1,48 @@
-FROM python:3.9-slim 
+# Multistage Docker file to slim the image
+
+# -----As Builder -----
+    
+FROM python:3.11-slim As builder
+
+# ---- Install Build Dependancy --
+
+RUN apt-get update  && apt-get install -y gcc deafult-mylibsqlclient-dev pkg-config && apt-get clean && rm -rf /var/lib/apt/list/*
+
+# Set working Directory
+
+WORKDIR /app 
+
+# copy requirements file to image
+
+COPY requirements.txt .
+
+# --- Install python dependancy from requirements.txt 
+
+RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
+
+# --- stage 2 --final- image
+
+#  base image
+
+FROM python:3.11-slim
+
+# Set working directory
 
 WORKDIR /app
 
+# copy installed packages from builder
 
-RUN apt-get update && apt-get install -y gcc default-libmysqlclient-dev pkg-config && \
-rm -rf /var/lib/apt/lists/* 
+COPY f--from=builder /install /usr/local
 
-COPY requirement.txt .
-
-RUN pip install --no-cache-dir -r requirement.txt
+# Copyy application code
 
 COPY . .
 
-EXPOSE 5000
+# Run the application
 
 CMD ["python", "app.py"]
+
+
+
+    
+
